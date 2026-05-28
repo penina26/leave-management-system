@@ -1,0 +1,103 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
+
+const api = import.meta.env.VITE_API_BASE_URL;
+
+function MyLeaveRequestDetailPage() {
+    const { requestId } = useParams();
+
+    const [leaveRequest, setLeaveRequest] = useState(null);
+    const [approvalHistory, setApprovalHistory] = useState([]);
+
+    useEffect(() => {
+        async function fetchLeaveRequestDetail() {
+            try {
+                const token = localStorage.getItem("token");
+
+                const response = await axios.get(
+                    `${api}/my-leave-requests/${requestId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                setLeaveRequest(response.data.leave_request);
+                setApprovalHistory(response.data.approval_history);
+            } catch (error) {
+                console.error(
+                    "Failed to fetch leave request detail:",
+                    error.response?.data || error.message
+                );
+
+                const backendMessage = error.response?.data?.message;
+                toast.error(backendMessage || "Failed to load leave request detail");
+            }
+        }
+
+        fetchLeaveRequestDetail();
+    }, [requestId]);
+
+    if (!leaveRequest) {
+        return <p>Loading leave request detail...</p>;
+    }
+
+    return (
+        <div>
+            <h1>My Leave Request Detail</h1>
+
+            <h2>Leave Request</h2>
+            <p><strong>ID:</strong> {leaveRequest.id}</p>
+            <p><strong>Leave Type:</strong> {leaveRequest.leave_type_name}</p>
+            <p><strong>Unit:</strong> {leaveRequest.unit_name}</p>
+            <p><strong>Supervisor:</strong> {leaveRequest.supervisor_name}</p>
+            <p><strong>Head of Unit:</strong> {leaveRequest.head_user_name}</p>
+            <p><strong>Start Date:</strong> {leaveRequest.start_date}</p>
+            <p><strong>End Date:</strong> {leaveRequest.end_date}</p>
+            <p><strong>Days Requested:</strong> {leaveRequest.days_requested}</p>
+            <p><strong>Reason:</strong> {leaveRequest.reason}</p>
+            <p><strong>Status:</strong> {leaveRequest.status}</p>
+            <p><strong>Submitted At:</strong> {leaveRequest.submitted_at}</p>
+            <p><strong>Supervisor Action At:</strong> {leaveRequest.supervisor_action_at || "N/A"}</p>
+            <p><strong>Head Action At:</strong> {leaveRequest.head_action_at || "N/A"}</p>
+
+            <hr />
+
+            <h2>Approval History</h2>
+
+            {approvalHistory.length === 0 ? (
+                <p>No approval history found.</p>
+            ) : (
+                <table border="1" cellPadding="8" cellSpacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Action By</th>
+                            <th>Role</th>
+                            <th>Action</th>
+                            <th>Comment</th>
+                            <th>Action Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {approvalHistory.map((action) => (
+                            <tr key={action.id}>
+                                <td>{action.id}</td>
+                                <td>{action.action_by_full_name}</td>
+                                <td>{action.action_role}</td>
+                                <td>{action.action_type}</td>
+                                <td>{action.comment}</td>
+                                <td>{action.action_date}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
+        </div>
+    );
+}
+
+export default MyLeaveRequestDetailPage;

@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function HeadDashboard() {
     const navigate = useNavigate();
@@ -22,6 +22,16 @@ function HeadDashboard() {
                     <p><strong>Username:</strong> {user.username}</p>
                     <p><strong>Email:</strong> {user.email}</p>
                     <p><strong>Roles:</strong> {user.roles.join(", ")}</p>
+
+                    <hr />
+
+                    <h2>Head Actions</h2>
+
+                    <ul>
+                        <li>
+                            <Link to="/head/pending-requests">Pending Approval Requests</Link>
+                        </li>
+                    </ul>
 
                     <button onClick={handleLogout}>Logout</button>
                 </div>

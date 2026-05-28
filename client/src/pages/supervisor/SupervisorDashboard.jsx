@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function SupervisorDashboard() {
     const navigate = useNavigate();
@@ -23,6 +23,16 @@ function SupervisorDashboard() {
                     <p><strong>Email:</strong> {user.email}</p>
                     <p><strong>Roles:</strong> {user.roles.join(", ")}</p>
 
+                    <hr />
+
+                    <h2>Supervisor Actions</h2>
+
+                    <ul>
+                        <li>
+                            <Link to="/supervisor/pending-requests">Pending Leave Requests</Link>
+                        </li>
+                    </ul>
+
                     <button onClick={handleLogout}>Logout</button>
                 </div>
             ) : (
@@ -33,5 +43,3 @@ function SupervisorDashboard() {
 }
 
 export default SupervisorDashboard;
-
-

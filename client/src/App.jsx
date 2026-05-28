@@ -10,6 +10,16 @@ import RoleProtectedRoute from "./routes/RoleProtectedRoute";
 import ApplyLeavePage from "./pages/staff/ApplyLeavePage";
 import MyLeaveRequestsPage from "./pages/staff/MyLeaveRequestsPage";
 import MyLeaveBalancesPage from "./pages/staff/MyLeaveBalancesPage";
+import MyLeaveRequestDetailPage from "./pages/staff/MyLeaveRequestDetailPage"
+import SupervisorPendingRequestsPage from "./pages/supervisor/SupervisorPendingRequestsPage";
+import SupervisorLeaveRequestDetailPage from "./pages/supervisor/SupervisorLeaveRequestDetailPage";
+import HeadPendingRequestsPage from "./pages/head/HeadPendingRequestsPage";
+import HeadLeaveRequestDetailPage from "./pages/head/HeadLeaveRequestDetailPage";
+import UsersListPage from "./pages/admin/users/UsersListPage";
+import CreateUserPage from "./pages/admin/users/CreateUserPage";
+
+
+
 
 
 function App() {
@@ -71,10 +81,76 @@ function App() {
           }
         />
         <Route
+          path="/staff/my-leave-requests/:requestId"
+          element={
+            <RoleProtectedRoute allowedRoles={["staff"]}>
+              <MyLeaveRequestDetailPage />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
           path="/staff/my-leave-balances"
           element={
             <RoleProtectedRoute allowedRoles={["staff"]}>
               <MyLeaveBalancesPage />
+            </RoleProtectedRoute>
+          }
+        />
+
+        {/* supervisor */}
+
+        <Route
+          path="/supervisor/pending-requests"
+          element={
+            <RoleProtectedRoute allowedRoles={["supervisor"]}>
+              <SupervisorPendingRequestsPage />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/supervisor/leave-requests/:requestId"
+          element={
+            <RoleProtectedRoute allowedRoles={["supervisor"]}>
+              <SupervisorLeaveRequestDetailPage />
+            </RoleProtectedRoute>
+          }
+        />
+
+        {/* HoU */}
+        <Route
+          path="/head/pending-requests"
+          element={
+            <RoleProtectedRoute allowedRoles={["head_of_unit"]}>
+              <HeadPendingRequestsPage />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/head/leave-requests/:requestId"
+          element={
+            <RoleProtectedRoute allowedRoles={["head_of_unit"]}>
+              <HeadLeaveRequestDetailPage />
+            </RoleProtectedRoute>
+          }
+        />
+
+        {/* admin panel */}
+        <Route
+          path="/admin/users"
+          element={
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <UsersListPage />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/users/create"
+          element={
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <CreateUserPage />
             </RoleProtectedRoute>
           }
         />
