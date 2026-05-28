@@ -17,6 +17,10 @@ import HeadPendingRequestsPage from "./pages/head/HeadPendingRequestsPage";
 import HeadLeaveRequestDetailPage from "./pages/head/HeadLeaveRequestDetailPage";
 import UsersListPage from "./pages/admin/users/UsersListPage";
 import CreateUserPage from "./pages/admin/users/CreateUserPage";
+import EditUserPage from "./pages/admin/users/EditUserPage";
+import UnitsListPage from "./pages/admin/units/UnitsListPage";
+import CreateUnitPage from "./pages/admin/units/CreateUnitPage";
+import EditUnitPage from "./pages/admin/units/EditUnitPage";
 
 
 
@@ -154,6 +158,44 @@ function App() {
             </RoleProtectedRoute>
           }
         />
+
+        <Route
+          path="/admin/users/:userId/edit"
+          element={
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <EditUserPage />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/units"
+          element={
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <UnitsListPage />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/units/create"
+          element={
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <CreateUnitPage />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/units/:unitId/edit"
+          element={
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <EditUnitPage />
+            </RoleProtectedRoute>
+          }
+        />
+
+
+
 
       </Routes>
     </BrowserRouter>

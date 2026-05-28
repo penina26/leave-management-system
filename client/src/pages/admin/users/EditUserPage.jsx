@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Select from "react-select";
 
 const api = import.meta.env.VITE_API_BASE_URL;
 
-function CreateUserPage() {
+function EditUserPage() {
+    const { userId } = useParams();
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
         employee_number: "",
         full_name: "",
@@ -15,24 +19,26 @@ function CreateUserPage() {
         unit_id: "",
         supervisor_id: "",
         role_ids: [],
+        is_active: true,
     });
 
     const [units, setUnits] = useState([]);
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function fetchDropdownData() {
+        async function fetchEditFormData() {
             try {
                 const token = localStorage.getItem("token");
 
-                const [unitsResponse, usersResponse, rolesResponse] = await Promise.all([
-                    axios.get(`${api}/admin/units`, {
+                const [usersResponse, unitsResponse, rolesResponse] = await Promise.all([
+                    axios.get(`${api}/admin/users`, {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
                     }),
-                    axios.get(`${api}/admin/users`, {
+                    axios.get(`${api}/admin/units`, {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
@@ -44,29 +50,58 @@ function CreateUserPage() {
                     }),
                 ]);
 
+                const allUsers = usersResponse.data.users;
+                const foundUser = allUsers.find((item) => item.id === Number(userId));
+
+                if (!foundUser) {
+                    toast.error("User not found");
+                    setLoading(false);
+                    return;
+                }
+
+                setUsers(allUsers);
                 setUnits(unitsResponse.data.units);
-                setUsers(usersResponse.data.users);
                 setRoles(rolesResponse.data.roles);
+
+                // Convert backend role names into role IDs for checkbox selection
+                const selectedRoleIds = rolesResponse.data.roles
+                    .filter((role) => foundUser.roles.includes(role.name))
+                    .map((role) => role.id);
+
+                setFormData({
+                    employee_number: foundUser.employee_number || "",
+                    full_name: foundUser.full_name || "",
+                    username: foundUser.username || "",
+                    email: foundUser.email || "",
+                    password: "",
+                    unit_id: foundUser.unit_id || "",
+                    supervisor_id: foundUser.supervisor_id || "",
+                    role_ids: selectedRoleIds,
+                    is_active: foundUser.is_active,
+                });
+
+                setLoading(false);
             } catch (error) {
                 console.error(
-                    "Failed to load units/users/roles:",
+                    "Failed to load edit user form data:",
                     error.response?.data || error.message
                 );
 
                 const backendMessage = error.response?.data?.message;
-                toast.error(backendMessage || "Failed to load form data");
+                toast.error(backendMessage || "Failed to load user data");
+                setLoading(false);
             }
         }
 
-        fetchDropdownData();
-    }, []);
+        fetchEditFormData();
+    }, [userId]);
 
     function handleChange(event) {
-        const { name, value } = event.target;
+        const { name, value, type, checked } = event.target;
 
         setFormData({
             ...formData,
-            [name]: value,
+            [name]: type === "checkbox" ? checked : value,
         });
     }
 
@@ -107,43 +142,43 @@ function CreateUserPage() {
                 full_name: formData.full_name,
                 username: formData.username,
                 email: formData.email,
-                password: formData.password,
                 unit_id: formData.unit_id ? Number(formData.unit_id) : null,
                 supervisor_id: formData.supervisor_id
                     ? Number(formData.supervisor_id)
                     : null,
+                is_active: formData.is_active,
                 role_ids: formData.role_ids,
             };
 
-            const response = await axios.post(`${api}/admin/users`, payload, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            // Only include password if admin typed a new one
+            if (formData.password.trim() !== "") {
+                payload.password = formData.password;
+            }
 
-            toast.success(response.data.message || "User created successfully");
+            const response = await axios.patch(
+                `${api}/admin/users/${userId}`,
+                payload,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
 
-            setFormData({
-                employee_number: "",
-                full_name: "",
-                username: "",
-                email: "",
-                password: "",
-                unit_id: "",
-                supervisor_id: "",
-                role_ids: [],
-            });
+            toast.success(response.data.message || "User updated successfully");
+            navigate("/admin/users");
         } catch (error) {
             console.error(
-                "Failed to create user:",
+                "Failed to update user:",
                 error.response?.data || error.message
             );
 
             const backendMessage = error.response?.data?.message;
-            toast.error(backendMessage || "Failed to create user");
+            toast.error(backendMessage || "Failed to update user");
         }
     }
 
+    // Only users with supervisor role should appear in supervisor dropdown
     const supervisors = users.filter((user) =>
         user.roles.includes("supervisor")
     );
@@ -153,9 +188,13 @@ function CreateUserPage() {
         label: user.full_name,
     }));
 
+    if (loading) {
+        return <p>Loading edit form...</p>;
+    }
+
     return (
         <div>
-            <h1>Create User</h1>
+            <h1>Edit User</h1>
 
             <form onSubmit={handleSubmit}>
                 <div>
@@ -227,7 +266,7 @@ function CreateUserPage() {
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        placeholder="Enter password"
+                        placeholder="Leave blank to keep current password"
                     />
                 </div>
 
@@ -296,10 +335,24 @@ function CreateUserPage() {
 
                 <br />
 
-                <button type="submit">Create User</button>
+                <div>
+                    <label>
+                        <input
+                            type="checkbox"
+                            name="is_active"
+                            checked={formData.is_active}
+                            onChange={handleChange}
+                        />
+                        Active
+                    </label>
+                </div>
+
+                <br />
+
+                <button type="submit">Update User</button>
             </form>
         </div>
     );
 }
 
-export default CreateUserPage;
+export default EditUserPage;

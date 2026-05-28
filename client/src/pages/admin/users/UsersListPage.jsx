@@ -62,7 +62,11 @@ function UsersListPage() {
                     <tbody>
                         {users.map((user) => (
                             <tr key={user.id}>
-                                <td>{user.id}</td>
+                                <td>
+                                    <Link to={`/admin/users/${user.id}/edit`}>
+                                        {user.id}
+                                    </Link>
+                                </td>
                                 <td>{user.employee_number}</td>
                                 <td>{user.full_name}</td>
                                 <td>{user.username}</td>
