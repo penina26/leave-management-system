@@ -21,6 +21,19 @@ import EditUserPage from "./pages/admin/users/EditUserPage";
 import UnitsListPage from "./pages/admin/units/UnitsListPage";
 import CreateUnitPage from "./pages/admin/units/CreateUnitPage";
 import EditUnitPage from "./pages/admin/units/EditUnitPage";
+import RolesListPage from "./pages/admin/roles/RolesListPage";
+import CreateRolePage from "./pages/admin/roles/CreateRolePage";
+import EditRolePage from "./pages/admin/roles/EditRolePage";
+import LeaveTypesListPage from "./pages/admin/leaveTypes/LeaveTypesListPage";
+import CreateLeaveTypePage from "./pages/admin/leaveTypes/CreateLeaveTypePage";
+import EditLeaveTypePage from "./pages/admin/leaveTypes/EditLeaveTypePage";
+import LeaveBalancesListPage from "./pages/admin/leaveBalances/LeaveBalancesListPage";
+import EditLeaveBalancePage from "./pages/admin/leaveBalances/EditLeaveBalancePage";
+
+
+
+
+
 
 
 
@@ -193,6 +206,81 @@ function App() {
             </RoleProtectedRoute>
           }
         />
+
+        <Route
+          path="/admin/roles"
+          element={
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <RolesListPage />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/roles/create"
+          element={
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <CreateRolePage />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/roles/:roleId/edit"
+          element={
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <EditRolePage />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/leave-types"
+          element={
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <LeaveTypesListPage />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/leave-types/create"
+          element={
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <CreateLeaveTypePage />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/leave-types/:leaveTypeId/edit"
+          element={
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <EditLeaveTypePage />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/leave-balances"
+          element={
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <LeaveBalancesListPage />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/leave-balances/:balanceId/edit"
+          element={
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <EditLeaveBalancePage />
+            </RoleProtectedRoute>
+          }
+        />
+
+
+
+
 
 
 

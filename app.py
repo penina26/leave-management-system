@@ -14,6 +14,9 @@ from resources.auth import register_auth_routes
 from resources.leave_request import register_leave_request_routes
 from resources.admin_users import register_admin_user_routes
 from resources.admin_roles import register_admin_role_routes
+from resources.admin_leave_types import register_admin_leave_type_routes
+from resources.admin_leave_balances import register_admin_leave_balance_routes
+
 
 
 
@@ -50,6 +53,9 @@ def create_app():
     register_leave_request_routes(app)
     register_admin_user_routes(app)
     register_admin_role_routes(app)
+    register_admin_leave_type_routes(app)
+    register_admin_leave_balance_routes(app)
+
 
 
     # Simple test route
