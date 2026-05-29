@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
 import Select from "react-select";
-
-const api = import.meta.env.VITE_API_BASE_URL;
+import api from "../../../services/api";
 
 function EditUserPage() {
     const { userId } = useParams();
@@ -30,20 +28,20 @@ function EditUserPage() {
     useEffect(() => {
         async function fetchEditFormData() {
             try {
-                const token = localStorage.getItem("token");
+                const token = localStorage.getItem("access_token");
 
                 const [usersResponse, unitsResponse, rolesResponse] = await Promise.all([
-                    axios.get(`${api}/admin/users`, {
+                    api.get("/admin/users", {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
                     }),
-                    axios.get(`${api}/admin/units`, {
+                    api.get("/admin/units", {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
                     }),
-                    axios.get(`${api}/admin/roles`, {
+                    api.get("/admin/roles", {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
@@ -155,8 +153,8 @@ function EditUserPage() {
                 payload.password = formData.password;
             }
 
-            const response = await axios.patch(
-                `${api}/admin/users/${userId}`,
+            const response = await api.patch(
+                `/admin/users/${userId}`,
                 payload,
                 {
                     headers: {

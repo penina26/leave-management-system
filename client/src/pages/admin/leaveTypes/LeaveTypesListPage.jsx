@@ -1,18 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
+import api from "../../../services/api";
 
-const api = import.meta.env.VITE_API_BASE_URL;
 
 function LeaveTypesListPage() {
     const [leaveTypes, setLeaveTypes] = useState([]);
 
     async function fetchLeaveTypes() {
         try {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("access_token");
 
-            const response = await axios.get(`${api}/admin/leave-types`, {
+            const response = await api.get("/admin/leave-types", {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -46,8 +45,8 @@ function LeaveTypesListPage() {
         try {
             const token = localStorage.getItem("token");
 
-            const response = await axios.delete(
-                `${api}/admin/leave-types/${leaveTypeId}`,
+            const response = await api.delete(
+                `/admin/leave-types/${leaveTypeId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,

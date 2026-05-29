@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
+import api from "../../services/api";
 
-const api = import.meta.env.VITE_API_BASE_URL;
 
 function MyLeaveRequestDetailPage() {
     const { requestId } = useParams();
@@ -14,10 +13,10 @@ function MyLeaveRequestDetailPage() {
     useEffect(() => {
         async function fetchLeaveRequestDetail() {
             try {
-                const token = localStorage.getItem("token");
+                const token = localStorage.getItem("access_token");
 
-                const response = await axios.get(
-                    `${api}/my-leave-requests/${requestId}`,
+                const response = await api.get(
+                    `/my-leave-requests/${requestId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,

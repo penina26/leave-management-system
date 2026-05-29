@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../services/api";
 
-
-const api = import.meta.env.VITE_API_BASE_URL
 
 function LoginPage() {
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const [formData, setFormData] = useState({
         username: "",
@@ -27,19 +27,15 @@ function LoginPage() {
         event.preventDefault();
 
         try {
-            const response = await axios.post(`${api}/login`, formData);
+            const response = await api.post("/login", formData);
 
-            console.log("Login successful:", response.data);
+            const { access_token, refresh_token, user } = response.data;
 
-            const { access_token, user } = response.data;
+            // Save auth state through context
+            login(user, access_token, refresh_token);
 
-            // Save token and user info in localStorage
-            localStorage.setItem("token", access_token);
-            localStorage.setItem("user", JSON.stringify(user));
+            toast.success("Login successful");
 
-            toast.success("Login successful")
-
-            // Redirect based on role
             if (user.roles.includes("admin")) {
                 navigate("/admin/dashboard");
             } else if (user.roles.includes("head_of_unit")) {
@@ -55,7 +51,6 @@ function LoginPage() {
             console.error("Login failed:", error.response?.data || error.message);
 
             const backendMessage = error.response?.data?.message;
-
             toast.error(backendMessage || "Login failed");
         }
     }

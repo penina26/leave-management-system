@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
-
-const api = import.meta.env.VITE_API_BASE_URL;
+import api from "../../../services/api";
 
 function EditLeaveTypePage() {
     const { leaveTypeId } = useParams();
@@ -22,10 +20,10 @@ function EditLeaveTypePage() {
     useEffect(() => {
         async function fetchLeaveTypeData() {
             try {
-                const token = localStorage.getItem("token");
+                const token = localStorage.getItem("access_token");
 
-                const response = await axios.get(
-                    `${api}/admin/leave-types/${leaveTypeId}`,
+                const response = await api.get(
+                    `/admin/leave-types/${leaveTypeId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
@@ -82,8 +80,8 @@ function EditLeaveTypePage() {
                 is_active: formData.is_active,
             };
 
-            const response = await axios.patch(
-                `${api}/admin/leave-types/${leaveTypeId}`,
+            const response = await api.patch(
+                `/admin/leave-types/${leaveTypeId}`,
                 payload,
                 {
                     headers: {

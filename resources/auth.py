@@ -1,5 +1,5 @@
 from flask import request, jsonify
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 from utils.auth import roles_required
 
 
@@ -36,9 +36,11 @@ def register_auth_routes(app):
             return jsonify({"message": "User account is inactive"}), 403
 
         access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
 
         return jsonify({
             "access_token": access_token,
+            "refresh_token":refresh_token,
             "user": {
                 "id": user.id,
                 "username": user.username,
@@ -46,6 +48,28 @@ def register_auth_routes(app):
                 "email": user.email,
                 "roles": [role.name for role in user.roles]
             }
+        }), 200
+    
+    @app.route("/refresh", methods=["POST"])
+    @jwt_required(refresh=True)
+    def refresh():
+        """
+        Exchange a valid refresh token for a new access token.
+        """
+        current_user_id = get_jwt_identity()
+
+        user = UserModel.query.get(current_user_id)
+
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+
+        if not user.is_active:
+            return jsonify({"message": "User account is inactive"}), 403
+
+        new_access_token = create_access_token(identity=str(user.id))
+
+        return jsonify({
+            "access_token": new_access_token
         }), 200
 
     @app.route("/me", methods=["GET"])

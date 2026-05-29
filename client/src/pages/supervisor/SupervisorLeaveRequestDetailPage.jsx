@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
+import api from "../../services/api";
 
-const api = import.meta.env.VITE_API_BASE_URL;
 
 function SupervisorLeaveRequestDetailPage() {
     const { requestId } = useParams();
@@ -16,8 +15,8 @@ function SupervisorLeaveRequestDetailPage() {
         try {
             const token = localStorage.getItem("token");
 
-            const response = await axios.get(
-                `${api}/supervisor/leave-requests/${requestId}`,
+            const response = await api.get(
+                `/supervisor/leave-requests/${requestId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -46,8 +45,8 @@ function SupervisorLeaveRequestDetailPage() {
         try {
             const token = localStorage.getItem("token");
 
-            const response = await axios.patch(
-                `${api}/leave-requests/${requestId}/endorse`,
+            const response = await api.patch(
+                `/leave-requests/${requestId}/endorse`,
                 {
                     comment: comment.trim() || "Recommended for approval",
                 },
@@ -79,10 +78,10 @@ function SupervisorLeaveRequestDetailPage() {
         }
 
         try {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("access_token");
 
-            const response = await axios.patch(
-                `${api}/leave-requests/${requestId}/reject`,
+            const response = await api.patch(
+                `/leave-requests/${requestId}/reject`,
                 {
                     comment: comment.trim(),
                 },

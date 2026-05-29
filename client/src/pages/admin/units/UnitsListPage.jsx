@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom"
-import axios from "axios";
 import { toast } from "react-toastify";
+import api from "../../../services/api";
 
-const api = import.meta.env.VITE_API_BASE_URL;
 
 function UnitsListPage() {
     const [units, setUnits] = useState([]);
@@ -11,9 +10,9 @@ function UnitsListPage() {
     useEffect(() => {
         async function fetchUnits() {
             try {
-                const token = localStorage.getItem("token");
+                const token = localStorage.getItem("access_token");
 
-                const response = await axios.get(`${api}/admin/units`, {
+                const response = await api.get("/admin/units", {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },

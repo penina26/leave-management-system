@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
+import api from "../../../services/api";
 
-const api = import.meta.env.VITE_API_BASE_URL;
+
 
 function LeaveBalancesListPage() {
     const [leaveBalances, setLeaveBalances] = useState([]);
@@ -11,9 +11,9 @@ function LeaveBalancesListPage() {
     useEffect(() => {
         async function fetchLeaveBalances() {
             try {
-                const token = localStorage.getItem("token");
+                const token = localStorage.getItem("access_token");
 
-                const response = await axios.get(`${api}/admin/leave-balances`, {
+                const response = await api.get("/admin/leave-balances", {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },

@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
+import api from "../../services/api";
 
-const api = import.meta.env.VITE_API_BASE_URL;
 
 function HeadLeaveRequestDetailPage() {
     const { requestId } = useParams();
@@ -14,10 +13,10 @@ function HeadLeaveRequestDetailPage() {
 
     async function fetchLeaveRequestDetail() {
         try {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("access_token");
 
-            const response = await axios.get(
-                `${api}/head/leave-requests/${requestId}`,
+            const response = await api.get(
+                `/head/leave-requests/${requestId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -46,8 +45,8 @@ function HeadLeaveRequestDetailPage() {
         try {
             const token = localStorage.getItem("token");
 
-            const response = await axios.patch(
-                `${api}/leave-requests/${requestId}/approve`,
+            const response = await api.patch(
+                `/leave-requests/${requestId}/approve`,
                 {
                     comment: comment.trim() || "Approved by head of unit",
                 },
@@ -79,10 +78,10 @@ function HeadLeaveRequestDetailPage() {
         }
 
         try {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("access_token");
 
-            const response = await axios.patch(
-                `${api}/leave-requests/${requestId}/reject-by-head`,
+            const response = await api.patch(
+                `/leave-requests/${requestId}/reject-by-head`,
                 {
                     comment: comment.trim(),
                 },

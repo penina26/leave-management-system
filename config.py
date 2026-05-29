@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 #load environment variables from .env file
 load_dotenv()
@@ -17,5 +18,9 @@ class Config:
 
     # secrete key for jwt generation
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+
+    # Token expiry
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)
 
 

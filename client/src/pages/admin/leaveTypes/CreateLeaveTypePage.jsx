@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
+import api from "../../../services/api";
 
-const api = import.meta.env.VITE_API_BASE_URL;
+
 
 function CreateLeaveTypePage() {
     const navigate = useNavigate();
@@ -29,7 +29,7 @@ function CreateLeaveTypePage() {
         event.preventDefault();
 
         try {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("access_token");
 
             const payload = {
                 name: formData.name,
@@ -39,7 +39,7 @@ function CreateLeaveTypePage() {
                 is_active: formData.is_active,
             };
 
-            const response = await axios.post(`${api}/admin/leave-types`, payload, {
+            const response = await api.post("/admin/leave-types", payload, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
+import api from "../../../services/api";
 
-const api = import.meta.env.VITE_API_BASE_URL;
+
 
 function CreateRolePage() {
     const navigate = useNavigate();
@@ -26,14 +26,14 @@ function CreateRolePage() {
         event.preventDefault();
 
         try {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("access_token");
 
             const payload = {
                 name: formData.name,
                 description: formData.description,
             };
 
-            const response = await axios.post(`${api}/admin/roles`, payload, {
+            const response = await api.post("/admin/roles", payload, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

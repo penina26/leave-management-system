@@ -7,7 +7,7 @@ function AdminDashboard() {
     const user = storedUser ? JSON.parse(storedUser) : null;
 
     function handleLogout() {
-        localStorage.removeItem("token");
+        localStorage.removeItem("access_token");
         localStorage.removeItem("user");
         navigate("/login");
     }

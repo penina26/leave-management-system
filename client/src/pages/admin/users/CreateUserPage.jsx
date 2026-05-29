@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import Select from "react-select";
+import api from "../../../services/api";
 
-const api = import.meta.env.VITE_API_BASE_URL;
 
 function CreateUserPage() {
     const [formData, setFormData] = useState({
@@ -24,20 +23,20 @@ function CreateUserPage() {
     useEffect(() => {
         async function fetchDropdownData() {
             try {
-                const token = localStorage.getItem("token");
+                const token = localStorage.getItem("access_token");
 
                 const [unitsResponse, usersResponse, rolesResponse] = await Promise.all([
-                    axios.get(`${api}/admin/units`, {
+                    api.get("/admin/units", {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
                     }),
-                    axios.get(`${api}/admin/users`, {
+                    api.get("/admin/users", {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
                     }),
-                    axios.get(`${api}/admin/roles`, {
+                    api.get("/admin/roles", {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
@@ -100,7 +99,7 @@ function CreateUserPage() {
         event.preventDefault();
 
         try {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("access_token");
 
             const payload = {
                 employee_number: formData.employee_number,
@@ -115,7 +114,7 @@ function CreateUserPage() {
                 role_ids: formData.role_ids,
             };
 
-            const response = await axios.post(`${api}/admin/users`, payload, {
+            const response = await api.post("/admin/users", payload, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

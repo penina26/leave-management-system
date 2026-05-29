@@ -1,18 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
+import api from "../../../services/api";
 
-const api = import.meta.env.VITE_API_BASE_URL;
 
 function RolesListPage() {
     const [roles, setRoles] = useState([]);
 
     async function fetchRoles() {
         try {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("access_token");
 
-            const response = await axios.get(`${api}/admin/roles`, {
+            const response = await api.get("/admin/roles", {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -44,9 +43,9 @@ function RolesListPage() {
         }
 
         try {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("access_token");
 
-            const response = await axios.delete(`${api}/admin/roles/${roleId}`, {
+            const response = await api.delete(`/admin/roles/${roleId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

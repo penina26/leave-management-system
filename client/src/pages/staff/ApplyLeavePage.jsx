@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
-
-const api = import.meta.env.VITE_API_BASE_URL;
+import api from "../../services/api";
 
 function ApplyLeavePage() {
     const [formData, setFormData] = useState({
@@ -22,7 +20,7 @@ function ApplyLeavePage() {
             try {
                 const token = localStorage.getItem("token");
 
-                const response = await axios.get(`${api}/leave-types`, {
+                const response = await api.get("/leave-types", {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -89,10 +87,10 @@ function ApplyLeavePage() {
         }
 
         try {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("access_token");
 
-            const response = await axios.post(
-                `${api}/leave-requests`,
+            const response = await api.post(
+                "/leave-requests",
                 {
                     leave_type_id: Number(formData.leave_type_id),
                     start_date: formData.start_date,

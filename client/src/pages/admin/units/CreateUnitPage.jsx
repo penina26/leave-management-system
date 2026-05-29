@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
 import Select from "react-select";
+import api from "../../../services/api";
 
-const api = import.meta.env.VITE_API_BASE_URL;
+
 
 function CreateUnitPage() {
     const navigate = useNavigate();
@@ -20,9 +20,9 @@ function CreateUnitPage() {
     useEffect(() => {
         async function fetchUsers() {
             try {
-                const token = localStorage.getItem("token");
+                const token = localStorage.getItem("access_token");
 
-                const response = await axios.get(`${api}/admin/users`, {
+                const response = await api.get("/admin/users", {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -73,7 +73,7 @@ function CreateUnitPage() {
                     : null,
             };
 
-            const response = await axios.post(`${api}/admin/units`, payload, {
+            const response = await api.post("/admin/units", payload, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

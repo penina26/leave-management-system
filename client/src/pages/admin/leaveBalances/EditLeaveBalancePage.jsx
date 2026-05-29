@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
 import Select from "react-select";
+import api from "../../../services/api";
 
-const api = import.meta.env.VITE_API_BASE_URL;
+
 
 function EditLeaveBalancePage() {
     const { balanceId } = useParams();
@@ -25,21 +25,21 @@ function EditLeaveBalancePage() {
     useEffect(() => {
         async function fetchEditFormData() {
             try {
-                const token = localStorage.getItem("token");
+                const token = localStorage.getItem("access_token");
 
                 const [balanceResponse, usersResponse, leaveTypesResponse] =
                     await Promise.all([
-                        axios.get(`${api}/admin/leave-balances/${balanceId}`, {
+                        api.get(`admin/leave-balances/${balanceId}`, {
                             headers: {
                                 Authorization: `Bearer ${token}`,
                             },
                         }),
-                        axios.get(`${api}/admin/users`, {
+                        api.get("/admin/users", {
                             headers: {
                                 Authorization: `Bearer ${token}`,
                             },
                         }),
-                        axios.get(`${api}/admin/leave-types`, {
+                        api.get("/admin/leave-types", {
                             headers: {
                                 Authorization: `Bearer ${token}`,
                             },
@@ -95,7 +95,7 @@ function EditLeaveBalancePage() {
         event.preventDefault();
 
         try {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("access_token");
 
             const payload = {
                 user_id: Number(formData.user_id),
@@ -105,8 +105,8 @@ function EditLeaveBalancePage() {
                 used_days: Number(formData.used_days),
             };
 
-            const response = await axios.patch(
-                `${api}/admin/leave-balances/${balanceId}`,
+            const response = await api.patch(
+                `/admin/leave-balances/${balanceId}`,
                 payload,
                 {
                     headers: {
