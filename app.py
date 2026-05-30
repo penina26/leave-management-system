@@ -34,7 +34,7 @@ def create_app():
     """
     app = Flask(__name__)
     
-    CORS(app)
+    CORS(app, origins=["https://leave-management-system-y0gy.onrender.com"], supports_credentials=True)
 
     # Load configuration from Config class
     app.config.from_object(Config)
