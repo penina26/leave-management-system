@@ -8,11 +8,20 @@ function RoleProtectedRoute({ children, allowedRoles }) {
         return <Navigate to="/login" replace />;
     }
 
-    const user = JSON.parse(storedUser);
+    let user;
 
-    const hasAllowedRole = user.roles.some((role) =>
-        allowedRoles.includes(role)
-    );
+    try {
+        user = JSON.parse(storedUser);
+    } catch (error) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user");
+        return <Navigate to="/login" replace />;
+    }
+
+    const userRoles = Array.isArray(user?.roles) ? user.roles : [];
+
+    const hasAllowedRole = userRoles.some((role) => allowedRoles.includes(role));
 
     if (!hasAllowedRole) {
         return <Navigate to="/login" replace />;

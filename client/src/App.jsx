@@ -1,83 +1,61 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
+import AppLayout from "./layouts/AppLayout";
 
 import LoginPage from "./pages/auth/LoginPage";
+
 import StaffDashboard from "./pages/staff/StaffDashboard";
-import SupervisorDashboard from "./pages/supervisor/SupervisorDashboard";
-import HeadDashboard from "./pages/head/HeadDashboard";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import RoleProtectedRoute from "./routes/RoleProtectedRoute";
 import ApplyLeavePage from "./pages/staff/ApplyLeavePage";
 import MyLeaveRequestsPage from "./pages/staff/MyLeaveRequestsPage";
 import MyLeaveBalancesPage from "./pages/staff/MyLeaveBalancesPage";
-import MyLeaveRequestDetailPage from "./pages/staff/MyLeaveRequestDetailPage"
+import MyLeaveRequestDetailPage from "./pages/staff/MyLeaveRequestDetailPage";
+
+import SupervisorDashboard from "./pages/supervisor/SupervisorDashboard";
 import SupervisorPendingRequestsPage from "./pages/supervisor/SupervisorPendingRequestsPage";
 import SupervisorLeaveRequestDetailPage from "./pages/supervisor/SupervisorLeaveRequestDetailPage";
+
+import HeadDashboard from "./pages/head/HeadDashboard";
 import HeadPendingRequestsPage from "./pages/head/HeadPendingRequestsPage";
 import HeadLeaveRequestDetailPage from "./pages/head/HeadLeaveRequestDetailPage";
+
+import AdminDashboard from "./pages/admin/AdminDashboard";
+
 import UsersListPage from "./pages/admin/users/UsersListPage";
 import CreateUserPage from "./pages/admin/users/CreateUserPage";
 import EditUserPage from "./pages/admin/users/EditUserPage";
+
 import UnitsListPage from "./pages/admin/units/UnitsListPage";
 import CreateUnitPage from "./pages/admin/units/CreateUnitPage";
 import EditUnitPage from "./pages/admin/units/EditUnitPage";
+
 import RolesListPage from "./pages/admin/roles/RolesListPage";
 import CreateRolePage from "./pages/admin/roles/CreateRolePage";
 import EditRolePage from "./pages/admin/roles/EditRolePage";
+
 import LeaveTypesListPage from "./pages/admin/leaveTypes/LeaveTypesListPage";
 import CreateLeaveTypePage from "./pages/admin/leaveTypes/CreateLeaveTypePage";
 import EditLeaveTypePage from "./pages/admin/leaveTypes/EditLeaveTypePage";
+
 import LeaveBalancesListPage from "./pages/admin/leaveBalances/LeaveBalancesListPage";
 import EditLeaveBalancePage from "./pages/admin/leaveBalances/EditLeaveBalancePage";
 
-
-
-
-
-
-
-
-
+import RoleProtectedRoute from "./routes/RoleProtectedRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* public routes */}
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
 
+        {/* staff */}
         <Route
           path="/staff/dashboard"
           element={
             <RoleProtectedRoute allowedRoles={["staff"]}>
-              <StaffDashboard />
-            </RoleProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/supervisor/dashboard"
-          element={
-            <RoleProtectedRoute allowedRoles={["supervisor"]}>
-              <SupervisorDashboard />
-            </RoleProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/head/dashboard"
-          element={
-            <RoleProtectedRoute allowedRoles={["head_of_unit"]}>
-              <HeadDashboard />
-            </RoleProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/dashboard"
-          element={
-            <RoleProtectedRoute allowedRoles={["admin"]}>
-              <AdminDashboard />
+              <AppLayout>
+                <StaffDashboard />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
@@ -85,7 +63,9 @@ function App() {
           path="/staff/apply-leave"
           element={
             <RoleProtectedRoute allowedRoles={["staff"]}>
-              <ApplyLeavePage />
+              <AppLayout>
+                <ApplyLeavePage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
@@ -93,7 +73,9 @@ function App() {
           path="/staff/my-leave-requests"
           element={
             <RoleProtectedRoute allowedRoles={["staff"]}>
-              <MyLeaveRequestsPage />
+              <AppLayout>
+                <MyLeaveRequestsPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
@@ -101,7 +83,9 @@ function App() {
           path="/staff/my-leave-requests/:requestId"
           element={
             <RoleProtectedRoute allowedRoles={["staff"]}>
-              <MyLeaveRequestDetailPage />
+              <AppLayout>
+                <MyLeaveRequestDetailPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
@@ -109,92 +93,135 @@ function App() {
           path="/staff/my-leave-balances"
           element={
             <RoleProtectedRoute allowedRoles={["staff"]}>
-              <MyLeaveBalancesPage />
+              <AppLayout>
+                <MyLeaveBalancesPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
 
         {/* supervisor */}
-
+        <Route
+          path="/supervisor/dashboard"
+          element={
+            <RoleProtectedRoute allowedRoles={["supervisor"]}>
+              <AppLayout>
+                <SupervisorDashboard />
+              </AppLayout>
+            </RoleProtectedRoute>
+          }
+        />
         <Route
           path="/supervisor/pending-requests"
           element={
             <RoleProtectedRoute allowedRoles={["supervisor"]}>
-              <SupervisorPendingRequestsPage />
+              <AppLayout>
+                <SupervisorPendingRequestsPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path="/supervisor/leave-requests/:requestId"
           element={
             <RoleProtectedRoute allowedRoles={["supervisor"]}>
-              <SupervisorLeaveRequestDetailPage />
+              <AppLayout>
+                <SupervisorLeaveRequestDetailPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
 
-        {/* HoU */}
+        {/* head of unit */}
+        <Route
+          path="/head/dashboard"
+          element={
+            <RoleProtectedRoute allowedRoles={["head_of_unit"]}>
+              <AppLayout>
+                <HeadDashboard />
+              </AppLayout>
+            </RoleProtectedRoute>
+          }
+        />
         <Route
           path="/head/pending-requests"
           element={
             <RoleProtectedRoute allowedRoles={["head_of_unit"]}>
-              <HeadPendingRequestsPage />
+              <AppLayout>
+                <HeadPendingRequestsPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path="/head/leave-requests/:requestId"
           element={
             <RoleProtectedRoute allowedRoles={["head_of_unit"]}>
-              <HeadLeaveRequestDetailPage />
+              <AppLayout>
+                <HeadLeaveRequestDetailPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
 
-        {/* admin panel */}
+        {/* admin */}
+        <Route
+          path="/admin/dashboard"
+          element={
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <AppLayout>
+                <AdminDashboard />
+              </AppLayout>
+            </RoleProtectedRoute>
+          }
+        />
         <Route
           path="/admin/users"
           element={
             <RoleProtectedRoute allowedRoles={["admin"]}>
-              <UsersListPage />
+              <AppLayout>
+                <UsersListPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path="/admin/users/create"
           element={
             <RoleProtectedRoute allowedRoles={["admin"]}>
-              <CreateUserPage />
+              <AppLayout>
+                <CreateUserPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path="/admin/users/:userId/edit"
           element={
             <RoleProtectedRoute allowedRoles={["admin"]}>
-              <EditUserPage />
+              <AppLayout>
+                <EditUserPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path="/admin/units"
           element={
             <RoleProtectedRoute allowedRoles={["admin"]}>
-              <UnitsListPage />
+              <AppLayout>
+                <UnitsListPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path="/admin/units/create"
           element={
             <RoleProtectedRoute allowedRoles={["admin"]}>
-              <CreateUnitPage />
+              <AppLayout>
+                <CreateUnitPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
@@ -202,34 +229,39 @@ function App() {
           path="/admin/units/:unitId/edit"
           element={
             <RoleProtectedRoute allowedRoles={["admin"]}>
-              <EditUnitPage />
+              <AppLayout>
+                <EditUnitPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path="/admin/roles"
           element={
             <RoleProtectedRoute allowedRoles={["admin"]}>
-              <RolesListPage />
+              <AppLayout>
+                <RolesListPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path="/admin/roles/create"
           element={
             <RoleProtectedRoute allowedRoles={["admin"]}>
-              <CreateRolePage />
+              <AppLayout>
+                <CreateRolePage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path="/admin/roles/:roleId/edit"
           element={
             <RoleProtectedRoute allowedRoles={["admin"]}>
-              <EditRolePage />
+              <AppLayout>
+                <EditRolePage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
@@ -237,54 +269,55 @@ function App() {
           path="/admin/leave-types"
           element={
             <RoleProtectedRoute allowedRoles={["admin"]}>
-              <LeaveTypesListPage />
+              <AppLayout>
+                <LeaveTypesListPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path="/admin/leave-types/create"
           element={
             <RoleProtectedRoute allowedRoles={["admin"]}>
-              <CreateLeaveTypePage />
+              <AppLayout>
+                <CreateLeaveTypePage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path="/admin/leave-types/:leaveTypeId/edit"
           element={
             <RoleProtectedRoute allowedRoles={["admin"]}>
-              <EditLeaveTypePage />
+              <AppLayout>
+                <EditLeaveTypePage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path="/admin/leave-balances"
           element={
             <RoleProtectedRoute allowedRoles={["admin"]}>
-              <LeaveBalancesListPage />
+              <AppLayout>
+                <LeaveBalancesListPage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path="/admin/leave-balances/:balanceId/edit"
           element={
             <RoleProtectedRoute allowedRoles={["admin"]}>
-              <EditLeaveBalancePage />
+              <AppLayout>
+                <EditLeaveBalancePage />
+              </AppLayout>
             </RoleProtectedRoute>
           }
         />
 
-
-
-
-
-
-
-
+        {/* fallback */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );

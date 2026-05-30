@@ -1,14 +1,25 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+    FiCalendar,
+    FiEdit,
+    FiInbox,
+    FiPlus,
+    FiTag,
+    FiTrash2,
+} from "react-icons/fi";
 import { toast } from "react-toastify";
 import api from "../../../services/api";
 
-
 function LeaveTypesListPage() {
     const [leaveTypes, setLeaveTypes] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [deletingLeaveTypeId, setDeletingLeaveTypeId] = useState(null);
 
     async function fetchLeaveTypes() {
         try {
+            setLoading(true);
+
             const token = localStorage.getItem("access_token");
 
             const response = await api.get("/admin/leave-types", {
@@ -17,7 +28,7 @@ function LeaveTypesListPage() {
                 },
             });
 
-            setLeaveTypes(response.data.leave_types);
+            setLeaveTypes(response.data.leave_types || []);
         } catch (error) {
             console.error(
                 "Failed to fetch leave types:",
@@ -26,6 +37,8 @@ function LeaveTypesListPage() {
 
             const backendMessage = error.response?.data?.message;
             toast.error(backendMessage || "Failed to load leave types");
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -43,20 +56,18 @@ function LeaveTypesListPage() {
         }
 
         try {
-            const token = localStorage.getItem("token");
+            setDeletingLeaveTypeId(leaveTypeId);
 
-            const response = await api.delete(
-                `/admin/leave-types/${leaveTypeId}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            const token = localStorage.getItem("access_token");
+
+            const response = await api.delete(`/admin/leave-types/${leaveTypeId}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
             toast.success(response.data.message || "Leave type deleted successfully");
 
-            // Refresh the list after successful delete
             fetchLeaveTypes();
         } catch (error) {
             console.error(
@@ -66,61 +77,255 @@ function LeaveTypesListPage() {
 
             const backendMessage = error.response?.data?.message;
             toast.error(backendMessage || "Failed to delete leave type");
+        } finally {
+            setDeletingLeaveTypeId(null);
         }
     }
 
+    function formatDateTime(dateString) {
+        if (!dateString) return "N/A";
+
+        const date = new Date(dateString);
+
+        if (Number.isNaN(date.getTime())) {
+            return dateString;
+        }
+
+        return date.toLocaleString();
+    }
+
+    function getBooleanBadgeClass(value, variant = "blue") {
+        if (value) {
+            if (variant === "green") {
+                return "bg-green-50 text-green-700 border border-green-200";
+            }
+
+            return "bg-blue-50 text-blue-700 border border-blue-200";
+        }
+
+        return "bg-gray-100 text-gray-600 border border-gray-200";
+    }
+
     return (
-        <div>
-            <h1>Admin - Leave Types</h1>
+        <div className="space-y-8">
+            {/* Header */}
+            <section className="rounded-3xl bg-gradient-to-r from-blue-700 to-blue-600 text-white p-8 shadow-sm">
+                <p className="text-sm uppercase tracking-wide text-blue-100 mb-2">
+                    Admin Portal
+                </p>
+                <h1 className="text-3xl font-bold">Leave Types</h1>
+                <p className="mt-3 text-blue-100 max-w-2xl">
+                    Manage leave type definitions, default day allocations, balance rules,
+                    and active status across the leave workflow.
+                </p>
+            </section>
 
-            <p>
-                <Link to="/admin/leave-types/create">Create New Leave Type</Link>
-            </p>
+            {/* Top summary / action */}
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-500">Total Leave Types</p>
+                            <h2 className="text-2xl font-bold text-gray-900 mt-2">
+                                {loading ? "--" : leaveTypes.length}
+                            </h2>
+                        </div>
 
-            {leaveTypes.length === 0 ? (
-                <p>No leave types found.</p>
-            ) : (
-                <table border="1" cellPadding="8" cellSpacing="0">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Description</th>
-                            <th>Default Days</th>
-                            <th>Requires Balance</th>
-                            <th>Active</th>
-                            <th>Created At</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {leaveTypes.map((leaveType) => (
-                            <tr key={leaveType.id}>
-                                <td>
-                                    <Link to={`/admin/leave-types/${leaveType.id}/edit`}>
-                                        {leaveType.id}
-                                    </Link>
-                                </td>
-                                <td>{leaveType.name}</td>
-                                <td>{leaveType.description || "N/A"}</td>
-                                <td>{leaveType.default_days}</td>
-                                <td>{leaveType.requires_balance ? "Yes" : "No"}</td>
-                                <td>{leaveType.is_active ? "Yes" : "No"}</td>
-                                <td>{leaveType.created_at || "N/A"}</td>
-                                <td>
-                                    <button
-                                        onClick={() =>
-                                            handleDeleteLeaveType(leaveType.id, leaveType.name)
-                                        }
-                                    >
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            )}
+                        <div className="h-12 w-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center">
+                            <FiTag className="h-5 w-5" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-500">Module</p>
+                            <h2 className="text-2xl font-bold text-gray-900 mt-2">
+                                Leave Type Management
+                            </h2>
+                        </div>
+
+                        <div className="h-12 w-12 rounded-2xl bg-green-50 text-green-700 flex items-center justify-center">
+                            <FiCalendar className="h-5 w-5" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 flex items-center justify-between gap-4">
+                    <div>
+                        <p className="text-sm text-gray-500">Quick Action</p>
+                        <h2 className="text-lg font-semibold text-gray-900 mt-2">
+                            Add a new leave type
+                        </h2>
+                    </div>
+
+                    <Link
+                        to="/admin/leave-types/create"
+                        className="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-800 transition whitespace-nowrap"
+                    >
+                        <FiPlus className="h-4 w-4" />
+                        Create Leave Type
+                    </Link>
+                </div>
+            </section>
+
+            {/* Table card */}
+            <section className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+                <div className="px-6 py-5 border-b border-gray-200 flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                        <h2 className="text-xl font-semibold text-gray-900">
+                            Leave Type Records
+                        </h2>
+                        <p className="text-sm text-gray-500 mt-1">
+                            Review leave type settings and manage available leave definitions.
+                        </p>
+                    </div>
+
+                    {!loading && (
+                        <div className="inline-flex items-center rounded-full bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">
+                            {leaveTypes.length} leave type{leaveTypes.length === 1 ? "" : "s"}
+                        </div>
+                    )}
+                </div>
+
+                {loading ? (
+                    <div className="p-10 flex flex-col items-center justify-center text-center">
+                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+                        <p className="mt-4 text-sm text-gray-500">Loading leave types...</p>
+                    </div>
+                ) : leaveTypes.length === 0 ? (
+                    <div className="p-10 text-center">
+                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+                            <FiInbox className="h-6 w-6" />
+                        </div>
+
+                        <h3 className="text-lg font-semibold text-gray-900">
+                            No leave types found
+                        </h3>
+
+                        <p className="mt-2 text-sm text-gray-500 max-w-md mx-auto">
+                            No leave type records are currently available. Create a new leave
+                            type to get started.
+                        </p>
+
+                        <Link
+                            to="/admin/leave-types/create"
+                            className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-800 transition"
+                        >
+                            <FiPlus className="h-4 w-4" />
+                            Create Leave Type
+                        </Link>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full text-sm text-left">
+                            <thead className="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th className="px-6 py-4 font-semibold text-gray-700">ID</th>
+                                    <th className="px-6 py-4 font-semibold text-gray-700">Name</th>
+                                    <th className="px-6 py-4 font-semibold text-gray-700">
+                                        Description
+                                    </th>
+                                    <th className="px-6 py-4 font-semibold text-gray-700">
+                                        Default Days
+                                    </th>
+                                    <th className="px-6 py-4 font-semibold text-gray-700">
+                                        Requires Balance
+                                    </th>
+                                    <th className="px-6 py-4 font-semibold text-gray-700">
+                                        Status
+                                    </th>
+                                    <th className="px-6 py-4 font-semibold text-gray-700">
+                                        Created At
+                                    </th>
+                                    <th className="px-6 py-4 font-semibold text-gray-700">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody className="divide-y divide-gray-200">
+                                {leaveTypes.map((leaveType) => (
+                                    <tr key={leaveType.id} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4 font-medium text-gray-900">
+                                            #{leaveType.id}
+                                        </td>
+
+                                        <td className="px-6 py-4 text-gray-700">
+                                            {leaveType.name || "N/A"}
+                                        </td>
+
+                                        <td className="px-6 py-4 text-gray-700 max-w-md">
+                                            {leaveType.description || "N/A"}
+                                        </td>
+
+                                        <td className="px-6 py-4">
+                                            <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 border border-blue-200">
+                                                {leaveType.default_days ?? 0}
+                                            </span>
+                                        </td>
+
+                                        <td className="px-6 py-4">
+                                            <span
+                                                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getBooleanBadgeClass(
+                                                    leaveType.requires_balance,
+                                                    "blue"
+                                                )}`}
+                                            >
+                                                {leaveType.requires_balance ? "Yes" : "No"}
+                                            </span>
+                                        </td>
+
+                                        <td className="px-6 py-4">
+                                            <span
+                                                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getBooleanBadgeClass(
+                                                    leaveType.is_active,
+                                                    "green"
+                                                )}`}
+                                            >
+                                                {leaveType.is_active ? "Active" : "Inactive"}
+                                            </span>
+                                        </td>
+
+                                        <td className="px-6 py-4 text-gray-700">
+                                            {formatDateTime(leaveType.created_at)}
+                                        </td>
+
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <Link
+                                                    to={`/admin/leave-types/${leaveType.id}/edit`}
+                                                    className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"
+                                                >
+                                                    <FiEdit className="h-4 w-4" />
+                                                    Edit
+                                                </Link>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleDeleteLeaveType(leaveType.id, leaveType.name)
+                                                    }
+                                                    disabled={deletingLeaveTypeId === leaveType.id}
+                                                    className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 transition disabled:cursor-not-allowed disabled:opacity-70"
+                                                >
+                                                    {deletingLeaveTypeId === leaveType.id ? (
+                                                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-red-700 border-t-transparent"></span>
+                                                    ) : (
+                                                        <FiTrash2 className="h-4 w-4" />
+                                                    )}
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </section>
         </div>
     );
 }
