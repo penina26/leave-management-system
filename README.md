@@ -218,10 +218,13 @@ VITE_API_URL= https://leave-management-backend-sm16.onrender.com
 
 ## Screenshots 
 
+Database Tables ERD
+![alt text](LeaveManagementERD.png)
+
 * Login page
 ![alt text](image-3.png)
 * Admin dashboard
-![alt text](image-2.png)
+![alt text](image-2.png) ![alt text](image-4.png)
 * Leave requests
 ![alt text](image.png)
 * Supervisor Leave Edorsements
