@@ -20,12 +20,8 @@ class LeaveBalanceModel(db.Model):
         ),
     )
 
-    # -----------------------------------------
-    # COLUMNS
-    # -----------------------------------------
 
     id = db.Column(db.Integer, primary_key=True)
-
     user_id = db.Column(
         db.Integer,
         db.ForeignKey("users.id"),
@@ -61,10 +57,6 @@ class LeaveBalanceModel(db.Model):
         onupdate=db.func.now(),
         nullable=False
     )
-
-    # -----------------------------------------
-    # RELATIONSHIPS
-    # -----------------------------------------
 
     user = db.relationship(
         "UserModel",

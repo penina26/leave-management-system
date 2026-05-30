@@ -90,9 +90,8 @@ The system supports multiple roles StaffThe system supports multiple roles:
 
 ## Local Setup Instructions
 
----
 
-## Backend Setup (Flask)
+### Backend Setup (Flask)
 
 ### 1. Clone repository
 
@@ -225,7 +224,7 @@ VITE_API_URL= https://leave-management-backend-sm16.onrender.com
 ![alt text](image-2.png)
 * Leave requests
 ![alt text](image.png)
-* Supervisor Leave Edosements
+* Supervisor Leave Edorsements
 ![alt text](image-1.png)
 
 ## Future Improvements
@@ -239,4 +238,4 @@ VITE_API_URL= https://leave-management-backend-sm16.onrender.com
 
 ## Author
 Penina Wanyama
-IT Operations / Data Solutions
+IT Operations|Data Solutions

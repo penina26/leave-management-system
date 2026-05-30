@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../services/api";
 
 function ApplyLeavePage() {
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
         leave_type_id: "",
         start_date: "",
@@ -118,6 +121,8 @@ function ApplyLeavePage() {
                 days_requested: 0,
                 reason: "",
             });
+
+            navigate("/staff/my-leave-requests");
         } catch (error) {
             console.error(
                 "Leave request submission failed:",
@@ -322,9 +327,9 @@ function ApplyLeavePage() {
                                 Before you submit
                             </p>
                             <ul className="text-sm text-blue-700 space-y-2 leading-6">
-                                <li>• Ensure your dates are correct.</li>
-                                <li>• Confirm the leave type matches your request.</li>
-                                <li>• Provide a clear reason for approval processing.</li>
+                                <li>-Ensure your dates are correct.</li>
+                                <li>-Confirm the leave type matches your request.</li>
+                                <li>-Provide a clear reason for approval processing.</li>
                             </ul>
                         </div>
                     </div>

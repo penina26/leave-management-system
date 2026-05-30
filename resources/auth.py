@@ -94,11 +94,5 @@ def register_auth_routes(app):
             "roles": [role.name for role in user.roles]
         }), 200
     
-    # @app.route("/admin-only", methods=["GET"])
-    # @roles_required("admin")
-    # def admin_only():
-    #     """
-    #     Test route accessible only to admin users.
-    #     """
-    #     return jsonify({"message": "Welcome, admin user"}), 200
+   
     

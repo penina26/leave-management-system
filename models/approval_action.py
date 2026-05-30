@@ -19,11 +19,7 @@ class ApprovalActionModel(db.Model):
     This table stores the history of actions performed on a leave request.
     """
 
-    __tablename__ = "approval_actions"
-
-    # -----------------------------------------
-    # COLUMNS
-    # -----------------------------------------
+    __tablename__ = "approval_actions"  
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -49,10 +45,7 @@ class ApprovalActionModel(db.Model):
         nullable=False
     )
 
-    # -----------------------------------------
-    # RELATIONSHIPS
-    # -----------------------------------------
-
+    
     # Each approval action belongs to one leave request
     leave_request = db.relationship(
         "LeaveRequestModel",
