@@ -220,9 +220,13 @@ VITE_API_URL= https://leave-management-backend-sm16.onrender.com
 ## Screenshots 
 
 * Login page
+![alt text](image-3.png)
 * Admin dashboard
+![alt text](image-2.png)
 * Leave requests
-* Leave balances
+![alt text](image.png)
+* Supervisor Leave Edosements
+![alt text](image-1.png)
 
 ## Future Improvements
 
