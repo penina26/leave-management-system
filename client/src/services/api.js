@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL,
+    baseURL: import.meta.env.VITE_API_URL,
 });
 
 // Attach access token to every request
@@ -44,7 +44,7 @@ api.interceptors.response.use(
                 }
 
                 const refreshResponse = await axios.post(
-                    `${import.meta.env.VITE_API_BASE_URL}/refresh`,
+                    `${import.meta.env.VITE_API_URL}/refresh`,
                     {},
                     {
                         headers: {

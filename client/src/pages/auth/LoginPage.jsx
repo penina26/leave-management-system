@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff, FiLoader, FiLock, FiUser } from "react-icons/fi";
 import { toast } from "react-toastify";
@@ -20,6 +20,22 @@ function LoginPage() {
     const isFormInvalid = useMemo(() => {
         return !formData.username.trim() || !formData.password.trim();
     }, [formData.username, formData.password]);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem("user");
+        const accessToken = localStorage.getItem("access_token");
+
+        if (storedUser && accessToken && storedUser !== "undefined" && accessToken !== "undefined") {
+            try {
+                const parsedUser = JSON.parse(storedUser);
+                navigate(getDefaultDashboardPath(parsedUser), { replace: true });
+            } catch (error) {
+                localStorage.removeItem("user");
+                localStorage.removeItem("access_token");
+                localStorage.removeItem("refresh_token");
+            }
+        }
+    }, [navigate]);
 
     function handleChange(event) {
         const { name, value } = event.target;
@@ -49,14 +65,29 @@ function LoginPage() {
                 password: trimmedPassword,
             });
 
-            const { access_token, refresh_token, user } = response.data;
+            console.log("Login response:", response);
+            console.log("Login response.data:", response.data);
+
+            // Support either:
+            // 1. response.data = { access_token, refresh_token, user }
+            // 2. response.data = { data: { access_token, refresh_token, user } }
+            const responsePayload = response?.data?.data || response?.data || {};
+
+            const accessToken = responsePayload.access_token;
+            const refreshToken = responsePayload.refresh_token;
+            const user = responsePayload.user;
+
+            if (!accessToken || !refreshToken || !user) {
+                console.error("Invalid login response payload:", responsePayload);
+                toast.error("Login response is missing authentication data");
+                return;
+            }
 
             // Save auth state through context
-            login(user, access_token, refresh_token);
+            login(user, accessToken, refreshToken);
 
             toast.success("Login successful");
 
-            // Use role priority helper
             navigate(getDefaultDashboardPath(user), { replace: true });
         } catch (error) {
             console.error("Login failed:", error.response?.data || error.message);
@@ -64,6 +95,7 @@ function LoginPage() {
             const backendMessage =
                 error.response?.data?.message ||
                 error.response?.data?.error ||
+                error.response?.data?.msg ||
                 "Login failed";
 
             toast.error(backendMessage);
@@ -83,7 +115,9 @@ function LoginPage() {
                         </div>
                     </div>
 
-                    <h1 className="text-4xl font-bold mb-4">Leave Management System</h1>
+                    <h1 className="text-4xl font-bold mb-4">
+                        Leave Management System
+                    </h1>
 
                     <p className="text-blue-100 text-lg mb-6 leading-8">
                         Manage leave applications, approvals, balances, and workflow access
