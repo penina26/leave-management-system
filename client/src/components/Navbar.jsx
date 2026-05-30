@@ -63,7 +63,7 @@ function Navbar() {
         if (roles.includes("staff")) {
             groups.push({
                 key: "staff",
-                label: "Staff",
+                label: "Staff Actions",
                 items: [
                     {
                         to: "/staff/dashboard",
@@ -92,7 +92,7 @@ function Navbar() {
         if (roles.includes("supervisor")) {
             groups.push({
                 key: "supervisor",
-                label: "Supervisor",
+                label: "Supervisor Actions",
                 items: [
                     {
                         to: "/supervisor/dashboard",
@@ -111,7 +111,7 @@ function Navbar() {
         if (roles.includes("head_of_unit")) {
             groups.push({
                 key: "head_of_unit",
-                label: "Head of Unit",
+                label: "Head of Unit Actions",
                 items: [
                     {
                         to: "/head/dashboard",
@@ -130,7 +130,7 @@ function Navbar() {
         if (roles.includes("admin")) {
             groups.push({
                 key: "admin",
-                label: "Admin",
+                label: "Admin Actions",
                 items: [
                     {
                         to: "/admin/dashboard",
