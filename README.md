@@ -225,9 +225,6 @@ Supervisor Leave Edorsements
 
 ## Project Structure
 
-
-## Project Structure
-
 ```
 project-root/
 │
