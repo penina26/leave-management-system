@@ -1,6 +1,6 @@
 # Leave Management System
 
-A full-stack Leave Management System built with **Flask (Python)** and **React (Vite)**, designed to support role-based workflows for managing staff leave applications, approvals, and balance tracking.
+A full-stack Leave Management System built with **Flask (Python)** and **React**, designed to support role-based workflows for managing staff leave applications, approvals, and balance tracking.
 
 ---
 
@@ -44,20 +44,17 @@ A full-stack Leave Management System built with **Flask (Python)** and **React (
 
 ### Role-Based Workflows
 
-The system supports multiple roles StaffThe system supports multiple roles:
+The system supports multiple roles Staff. The system supports multiple roles: Admin, Head of the unit, supervisor, staff
+
+### Staff
 - Apply for leave
 - View leave requests
 - View leave balances
-
-### Staff
-- Applies for leave
-
 #### Supervisor
 - Review and approve/reject leave requests
 
 #### Head of Unit
 - Final approval of leave requests
-- Dashboard includes staff capabilities
 
 #### Admin
 - Manage users, roles, and units
@@ -66,12 +63,11 @@ The system supports multiple roles StaffThe system supports multiple roles:
 
 ---
 
-## System Architecture
 
 ## Technologies Used
 
 ### Frontend
-- React (Vite)
+- React 
 - React Router
 - Axios
 - Tailwind CSS
@@ -89,7 +85,6 @@ The system supports multiple roles StaffThe system supports multiple roles:
 ---
 
 ## Local Setup Instructions
-
 
 ### Backend Setup (Flask)
 
@@ -210,26 +205,81 @@ SECRET_KEY
 
 **Frontend (Render Static Site)**
 
-Built with Vite → outputs to dist/
-Uses:
-```
-VITE_API_URL= https://leave-management-backend-sm16.onrender.com
-```
+* Built with React + Tailwind 
 
 ## Screenshots 
 
 Database Tables ERD
 ![alt text](LeaveManagementERD.png)
 
-* Login page
+Login page
 ![alt text](image-3.png)
-* Admin dashboard
+Admin dashboard
 ![alt text](image-2.png) ![alt text](image-4.png)
-* Leave requests
+Leave requests
 ![alt text](image.png)
-* Supervisor Leave Edorsements
+Supervisor Leave Edorsements
 ![alt text](image-1.png)
 
+---
+
+## Project Structure
+
+```
+project-root/
+│
+├── app/                                   # Main Flask application
+│   ├── __init__.py                        # App factory
+│   ├── extensions.py                      # DB, JWT, Migrate setup
+│   │
+│   ├── models/                            # Database models
+│   │   ├── __init__.py
+│   │   ├── approval_action.py
+│   │   ├── leave_balance.py
+│   │   ├── leave_request.py
+│   │   ├── leave_type.py
+│   │   ├── role.py
+│   │   ├── unit.py
+│   │   ├── user_role.py
+│   │   └── user.py
+│   │
+│   ├── resources/                         # API resources / endpoints
+│   │   ├── __init__.py
+│   │   ├── admin_leave_balance.py
+│   │   ├── admin_leave_types.py
+│   │   ├── admin_roles.py
+│   │   ├── admin_users.py
+│   │   ├── auth.py
+│   │   └── leave_request.py
+│   │
+│   └── utils/                             # Utility/helper functions
+│
+├── migrations/                            # Database migrations
+├── seed.py                                # Seed initial data
+├── run.py                                 # Application entry point
+├── config.py                              # App configuration
+├── requirements.txt                       # Python dependencies
+├── .env                                   # Environment variables
+│
+├── client/                                # React frontend
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── context/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   │
+│   ├── package.json
+│   └── vite.config.js
+│
+├── .gitignore
+├── README.md
+
+```
+---
 ## Future Improvements
 
 * Sidebar navigation instead of navbar
@@ -238,7 +288,7 @@ Database Tables ERD
 * Audit logging
 * Pagination & advanced filtering
 * Improved mobile responsiveness
-
+---
 ## Author
 Penina Wanyama
 IT Operations|Data Solutions
