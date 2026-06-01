@@ -226,11 +226,13 @@ Supervisor Leave Edorsements
 ## Project Structure
 
 ```
+## Project Structure
+
+```
 project-root/
 │
 ├── app/                                   # Main Flask application
-│   ├── __init__.py                        # App factory
-│   ├── extensions.py                      # DB, JWT, Migrate setup
+│   ├── __init__.py                        # App initialization
 │   │
 │   ├── models/                            # Database models
 │   │   ├── __init__.py
@@ -243,7 +245,7 @@ project-root/
 │   │   ├── user_role.py
 │   │   └── user.py
 │   │
-│   ├── resources/                         # API resources / endpoints
+│   ├── resources/                         # API endpoints (resources)
 │   │   ├── __init__.py
 │   │   ├── admin_leave_balance.py
 │   │   ├── admin_leave_types.py
@@ -252,13 +254,12 @@ project-root/
 │   │   ├── auth.py
 │   │   └── leave_request.py
 │   │
-│   └── utils/                             # Utility/helper functions
+│   └── utils/                             # Helper functions
 │
 ├── migrations/                            # Database migrations
-├── seed.py                                # Seed initial data
-├── run.py                                 # Application entry point
-├── config.py                              # App configuration
-├── requirements.txt                       # Python dependencies
+├── seed.py                                # Seed data script
+├── config.py                              # Configuration
+├── requirements.txt                       # Backend dependencies
 ├── .env                                   # Environment variables
 │
 ├── client/                                # React frontend
@@ -276,8 +277,7 @@ project-root/
 │   └── vite.config.js
 │
 ├── .gitignore
-├── README.md
-
+└── README.md
 ```
 ---
 ## Future Improvements
