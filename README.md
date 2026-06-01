@@ -221,6 +221,9 @@ Leave requests
 Supervisor Leave Edorsements
 ![alt text](image-1.png)
 
+A staff cannot apply for leave if they have exhausted their allocated days for that specific type.
+![alt text](image-5.png)
+
 ---
 
 ## Project Structure
