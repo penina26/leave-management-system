@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../services/api";
@@ -15,38 +15,58 @@ function ApplyLeavePage() {
     });
 
     const [leaveTypes, setLeaveTypes] = useState([]);
+    const [leaveBalances, setLeaveBalances] = useState([]);
     const [loadingLeaveTypes, setLoadingLeaveTypes] = useState(true);
+    const [loadingBalances, setLoadingBalances] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
     const today = new Date().toISOString().split("T")[0];
 
     useEffect(() => {
-        async function fetchLeaveTypes() {
+        async function fetchInitialData() {
             try {
-                setLoadingLeaveTypes(true);
-
                 const token = localStorage.getItem("access_token");
 
-                const response = await api.get("/leave-types", {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                setLoadingLeaveTypes(true);
+                setLoadingBalances(true);
 
-                setLeaveTypes(response.data.leave_types || response.data);
+                const [leaveTypesResponse, leaveBalancesResponse] = await Promise.all([
+                    api.get("/leave-types", {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }),
+                    api.get("/my-leave-balances", {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }),
+                ]);
+
+                setLeaveTypes(
+                    leaveTypesResponse.data.leave_types || leaveTypesResponse.data || []
+                );
+
+                setLeaveBalances(
+                    leaveBalancesResponse.data.leave_balances ||
+                    leaveBalancesResponse.data ||
+                    []
+                );
             } catch (error) {
                 console.error(
-                    "Failed to fetch leave types:",
+                    "Failed to load apply leave page data:",
                     error.response?.data || error.message
                 );
+
                 const backendMessage = error.response?.data?.message;
-                toast.error(backendMessage || "Failed to load leave types");
+                toast.error(backendMessage || "Failed to load leave application data");
             } finally {
                 setLoadingLeaveTypes(false);
+                setLoadingBalances(false);
             }
         }
 
-        fetchLeaveTypes();
+        fetchInitialData();
     }, []);
 
     function calculateDaysRequested(startDate, endDate) {
@@ -83,11 +103,133 @@ function ApplyLeavePage() {
         setFormData(updatedFormData);
     }
 
+    const selectedLeaveType = useMemo(() => {
+        return leaveTypes.find(
+            (leaveType) => String(leaveType.id) === String(formData.leave_type_id)
+        );
+    }, [leaveTypes, formData.leave_type_id]);
+
+    const leaveYear = useMemo(() => {
+        if (formData.start_date) {
+            return new Date(formData.start_date).getFullYear();
+        }
+        return new Date().getFullYear();
+    }, [formData.start_date]);
+
+    const selectedLeaveBalance = useMemo(() => {
+        if (!formData.leave_type_id) {
+            return null;
+        }
+
+        return (
+            leaveBalances.find(
+                (balance) =>
+                    String(balance.leave_type_id) === String(formData.leave_type_id) &&
+                    Number(balance.year) === Number(leaveYear)
+            ) || null
+        );
+    }, [leaveBalances, formData.leave_type_id, leaveYear]);
+
+    const balanceValidation = useMemo(() => {
+        if (!formData.leave_type_id) {
+            return {
+                canSubmit: true,
+                message: "",
+                status: "idle",
+            };
+        }
+
+        if (!selectedLeaveType) {
+            return {
+                canSubmit: true,
+                message: "",
+                status: "idle",
+            };
+        }
+
+        if (!selectedLeaveType.requires_balance) {
+            return {
+                canSubmit: true,
+                message: `${selectedLeaveType.name} does not require leave balance deduction.`,
+                status: "info",
+            };
+        }
+
+        if (!formData.start_date || !formData.end_date || formData.days_requested <= 0) {
+            return {
+                canSubmit: true,
+                message: "",
+                status: "idle",
+            };
+        }
+
+        if (!selectedLeaveBalance) {
+            return {
+                canSubmit: false,
+                message: `No leave balance record was found for ${selectedLeaveType.name} in ${leaveYear}. Please contact HR or admin.`,
+                status: "error",
+            };
+        }
+
+        if (Number(selectedLeaveBalance.remaining_days) <= 0) {
+            return {
+                canSubmit: false,
+                message: `You have exhausted your ${selectedLeaveType.name} balance for ${leaveYear}. Remaining days: 0.`,
+                status: "error",
+            };
+        }
+
+        if (Number(formData.days_requested) > Number(selectedLeaveBalance.remaining_days)) {
+            return {
+                canSubmit: false,
+                message: `Insufficient leave balance. You requested ${formData.days_requested} day(s), but only ${selectedLeaveBalance.remaining_days} day(s) remain for ${selectedLeaveType.name} in ${leaveYear}.`,
+                status: "error",
+            };
+        }
+
+        return {
+            canSubmit: true,
+            message: `Available balance for ${selectedLeaveType.name}: ${selectedLeaveBalance.remaining_days} day(s) in ${leaveYear}.`,
+            status: "success",
+        };
+    }, [
+        formData.leave_type_id,
+        formData.start_date,
+        formData.end_date,
+        formData.days_requested,
+        selectedLeaveType,
+        selectedLeaveBalance,
+        leaveYear,
+    ]);
+
+    const isFormComplete =
+        formData.leave_type_id &&
+        formData.start_date &&
+        formData.end_date &&
+        Number(formData.days_requested) > 0 &&
+        formData.reason.trim();
+
     async function handleSubmit(event) {
         event.preventDefault();
 
         if (!formData.leave_type_id) {
             return toast.error("Please select a leave type");
+        }
+
+        if (!formData.start_date || !formData.end_date) {
+            return toast.error("Please select both start date and end date");
+        }
+
+        if (Number(formData.days_requested) <= 0) {
+            return toast.error("Days requested must be greater than 0");
+        }
+
+        if (!formData.reason.trim()) {
+            return toast.error("Please provide a reason for leave");
+        }
+
+        if (!balanceValidation.canSubmit) {
+            return toast.error(balanceValidation.message);
         }
 
         setSubmitting(true);
@@ -102,7 +244,7 @@ function ApplyLeavePage() {
                     start_date: formData.start_date,
                     end_date: formData.end_date,
                     days_requested: Number(formData.days_requested),
-                    reason: formData.reason,
+                    reason: formData.reason.trim(),
                 },
                 {
                     headers: {
@@ -136,38 +278,42 @@ function ApplyLeavePage() {
         }
     }
 
+    const submitDisabled =
+        submitting ||
+        loadingLeaveTypes ||
+        loadingBalances ||
+        !isFormComplete ||
+        !balanceValidation.canSubmit;
+
     return (
         <div className="space-y-8">
-            {/* Header */}
-            <section className="rounded-3xl bg-gradient-to-r from-blue-700 to-blue-600 text-white p-8 shadow-sm">
-                <p className="text-sm uppercase tracking-wide text-blue-100 mb-2">
+            <section className="rounded-3xl bg-gradient-to-r from-blue-700 to-blue-600 p-8 text-white shadow-sm">
+                <p className="mb-2 text-sm uppercase tracking-wide text-blue-100">
                     Staff Portal
                 </p>
                 <h1 className="text-3xl font-bold">Apply Leave</h1>
-                <p className="mt-3 text-blue-100 max-w-2xl">
+                <p className="mt-3 max-w-2xl text-blue-100">
                     Complete the form below to submit a new leave request. Your request
                     will be reviewed through the approval workflow.
                 </p>
             </section>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Form card */}
-                <section className="lg:col-span-2 bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:col-span-2">
                     <div className="mb-6">
                         <h2 className="text-xl font-semibold text-gray-900">
                             Leave Request Form
                         </h2>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="mt-1 text-sm text-gray-500">
                             Fill in your leave details carefully before submitting.
                         </p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-5">
-                        {/* Leave Type */}
                         <div>
                             <label
                                 htmlFor="leave_type_id"
-                                className="block text-sm font-medium text-gray-700 mb-2"
+                                className="mb-2 block text-sm font-medium text-gray-700"
                             >
                                 Leave Type
                             </label>
@@ -179,10 +325,12 @@ function ApplyLeavePage() {
                                 onChange={handleChange}
                                 required
                                 disabled={loadingLeaveTypes || submitting}
-                                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm bg-white outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
                             >
                                 <option value="">
-                                    {loadingLeaveTypes ? "Loading leave types..." : "Select leave type"}
+                                    {loadingLeaveTypes
+                                        ? "Loading leave types..."
+                                        : "Select leave type"}
                                 </option>
                                 {leaveTypes.map((leaveType) => (
                                     <option key={leaveType.id} value={leaveType.id}>
@@ -192,12 +340,11 @@ function ApplyLeavePage() {
                             </select>
                         </div>
 
-                        {/* Dates */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                             <div>
                                 <label
                                     htmlFor="start_date"
-                                    className="block text-sm font-medium text-gray-700 mb-2"
+                                    className="mb-2 block text-sm font-medium text-gray-700"
                                 >
                                     Start Date
                                 </label>
@@ -210,14 +357,14 @@ function ApplyLeavePage() {
                                     min={today}
                                     required
                                     disabled={submitting}
-                                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
                                 />
                             </div>
 
                             <div>
                                 <label
                                     htmlFor="end_date"
-                                    className="block text-sm font-medium text-gray-700 mb-2"
+                                    className="mb-2 block text-sm font-medium text-gray-700"
                                 >
                                     End Date
                                 </label>
@@ -230,16 +377,15 @@ function ApplyLeavePage() {
                                     min={formData.start_date || today}
                                     required
                                     disabled={submitting}
-                                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
                                 />
                             </div>
                         </div>
 
-                        {/* Days Requested */}
                         <div>
                             <label
                                 htmlFor="days_requested"
-                                className="block text-sm font-medium text-gray-700 mb-2"
+                                className="mb-2 block text-sm font-medium text-gray-700"
                             >
                                 Days Requested
                             </label>
@@ -253,11 +399,10 @@ function ApplyLeavePage() {
                             />
                         </div>
 
-                        {/* Reason */}
                         <div>
                             <label
                                 htmlFor="reason"
-                                className="block text-sm font-medium text-gray-700 mb-2"
+                                className="mb-2 block text-sm font-medium text-gray-700"
                             >
                                 Reason
                             </label>
@@ -270,16 +415,28 @@ function ApplyLeavePage() {
                                 rows="5"
                                 required
                                 disabled={submitting}
-                                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none resize-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                className="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
                             />
                         </div>
 
-                        {/* Submit */}
+                        {balanceValidation.message && (
+                            <div
+                                className={`rounded-xl border p-4 text-sm ${balanceValidation.status === "error"
+                                        ? "border-red-200 bg-red-50 text-red-700"
+                                        : balanceValidation.status === "success"
+                                            ? "border-green-200 bg-green-50 text-green-700"
+                                            : "border-blue-200 bg-blue-50 text-blue-700"
+                                    }`}
+                            >
+                                {balanceValidation.message}
+                            </div>
+                        )}
+
                         <div className="pt-2">
                             <button
                                 type="submit"
-                                disabled={submitting || loadingLeaveTypes}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-800 transition disabled:cursor-not-allowed disabled:opacity-70"
+                                disabled={submitDisabled}
+                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-70"
                             >
                                 {submitting && (
                                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
@@ -290,29 +447,25 @@ function ApplyLeavePage() {
                     </form>
                 </section>
 
-                {/* Side info card */}
-                <aside className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 h-fit">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                <aside className="h-fit rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                    <h2 className="mb-4 text-lg font-semibold text-gray-900">
                         Request Summary
                     </h2>
 
                     <div className="space-y-4">
-                        <div className="rounded-xl bg-gray-50 border border-gray-200 p-4">
-                            <p className="text-xs uppercase tracking-wide text-gray-500 font-medium">
+                        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                                 Selected Leave Type
                             </p>
                             <p className="mt-2 text-sm font-semibold text-gray-900">
                                 {formData.leave_type_id
-                                    ? leaveTypes.find(
-                                        (leaveType) =>
-                                            String(leaveType.id) === String(formData.leave_type_id)
-                                    )?.name || "Selected"
+                                    ? selectedLeaveType?.name || "Selected"
                                     : "Not selected"}
                             </p>
                         </div>
 
-                        <div className="rounded-xl bg-gray-50 border border-gray-200 p-4">
-                            <p className="text-xs uppercase tracking-wide text-gray-500 font-medium">
+                        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                                 Duration
                             </p>
                             <p className="mt-2 text-sm font-semibold text-gray-900">
@@ -322,14 +475,39 @@ function ApplyLeavePage() {
                             </p>
                         </div>
 
-                        <div className="rounded-xl bg-blue-50 border border-blue-100 p-4">
-                            <p className="text-sm font-medium text-blue-800 mb-2">
+                        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                Leave Year
+                            </p>
+                            <p className="mt-2 text-sm font-semibold text-gray-900">
+                                {leaveYear}
+                            </p>
+                        </div>
+
+                        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                Available Balance
+                            </p>
+                            <p className="mt-2 text-sm font-semibold text-gray-900">
+                                {!formData.leave_type_id
+                                    ? "Select leave type"
+                                    : !selectedLeaveType?.requires_balance
+                                        ? "Not balance-based"
+                                        : selectedLeaveBalance
+                                            ? `${selectedLeaveBalance.remaining_days} day(s)`
+                                            : "No balance record found"}
+                            </p>
+                        </div>
+
+                        <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+                            <p className="mb-2 text-sm font-medium text-blue-800">
                                 Before you submit
                             </p>
-                            <ul className="text-sm text-blue-700 space-y-2 leading-6">
-                                <li>-Ensure your dates are correct.</li>
-                                <li>-Confirm the leave type matches your request.</li>
-                                <li>-Provide a clear reason for approval processing.</li>
+                            <ul className="space-y-2 text-sm leading-6 text-blue-700">
+                                <li>- Ensure your dates are correct.</li>
+                                <li>- Confirm the leave type matches your request.</li>
+                                <li>- Check your available leave balance before submitting.</li>
+                                <li>- Provide a clear reason for approval processing.</li>
                             </ul>
                         </div>
                     </div>

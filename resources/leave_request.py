@@ -18,7 +18,8 @@ def register_leave_request_routes(app):
     """
 
 
-    #fetch Leave types
+    #===================FETCH LEAVE TYPES===================
+
     @app.route("/leave-types", methods=["GET"])
     @roles_required("staff", "supervisor", "head_of_unit", "admin")
     def get_leave_types():
@@ -46,26 +47,21 @@ def register_leave_request_routes(app):
             "leave_types": results
         }), 200
 
-    #Create a leave request
+    #=========================APPLY FOR LEAVE==============================
     @app.route("/leave-requests", methods=["POST"])
     @roles_required("staff")
     def apply_leave():
         """
         Staff-only route to apply for leave.
         """
-        # Make sure JWT is present and valid
         verify_jwt_in_request()
 
-        # Get logged-in user ID from token
         current_user_id = get_jwt_identity()
-
-        # Find the logged-in user
         user = UserModel.query.get(current_user_id)
 
         if not user:
             return jsonify({"message": "User not found"}), 404
 
-        # Parse request body
         data = request.get_json()
 
         if not data:
@@ -106,7 +102,7 @@ def register_leave_request_routes(app):
             parsed_end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
         except ValueError:
             return jsonify({"message": "Dates must be in YYYY-MM-DD format"}), 400
-        
+
         today = datetime.today().date()
 
         if parsed_start_date < today:
@@ -115,18 +111,49 @@ def register_leave_request_routes(app):
         if parsed_end_date < today:
             return jsonify({"message": "end_date cannot be earlier than today"}), 400
 
-        # Validate date order
         if parsed_end_date < parsed_start_date:
             return jsonify({"message": "end_date cannot be earlier than start_date"}), 400
 
         # Validate days_requested
         try:
             days_requested = int(days_requested)
-        except ValueError:
+        except (ValueError, TypeError):
             return jsonify({"message": "days_requested must be an integer"}), 400
 
         if days_requested <= 0:
             return jsonify({"message": "days_requested must be greater than 0"}), 400
+
+        # Check Leave balance early       
+        if leave_type.requires_balance:
+            leave_year = parsed_start_date.year
+
+            leave_balance = LeaveBalanceModel.query.filter_by(
+                user_id=user.id,
+                leave_type_id=leave_type.id,
+                year=leave_year
+            ).first()
+
+            if not leave_balance:
+                return jsonify({
+                    "message": f"No leave balance record found for {leave_type.name} in {leave_year}"
+                }), 400
+
+            if leave_balance.remaining_days <= 0:
+                return jsonify({
+                    "message": f"You have exhausted your {leave_type.name} balance for {leave_year}. Remaining days: 0"
+                }), 400
+
+            if days_requested > leave_balance.remaining_days:
+                return jsonify({
+                    "message": (
+                        f"Insufficient leave balance. You requested {days_requested} day(s), "
+                        f"but only {leave_balance.remaining_days} day(s) remain for {leave_type.name} in {leave_year}."
+                    ),
+                    "remaining_days": leave_balance.remaining_days,
+                    "requested_days": days_requested,
+                    "leave_type": leave_type.name,
+                    "year": leave_year
+                }), 400
 
         # Create the leave request
         leave_request = LeaveRequestModel(
@@ -143,7 +170,7 @@ def register_leave_request_routes(app):
         )
 
         db.session.add(leave_request)
-        db.session.flush()  # flush so leave_request.id is available
+        db.session.flush()
 
         # Create initial approval action: submitted
         approval_action = ApprovalActionModel(
@@ -173,8 +200,9 @@ def register_leave_request_routes(app):
                 "status": leave_request.status
             }
         }), 201
+
     
-    #endorse Leave
+    #====================SUPERVISOR ENDORSE LEAVE==============================
     @app.route("/leave-requests/<int:request_id>/endorse", methods=["PATCH"])
     @roles_required("supervisor")
     def endorse_leave_request(request_id):
@@ -242,7 +270,7 @@ def register_leave_request_routes(app):
         }), 200
     
 
-    #Reject leave application
+    #============================SUPERVISOR REJECT LEAVE APPLICATION=========================
     @app.route("/leave-requests/<int:request_id>/reject", methods=["PATCH"])
     @roles_required("supervisor")
     def reject_leave_request(request_id):
@@ -309,8 +337,7 @@ def register_leave_request_routes(app):
             }
         }), 200
     
-    #---------------HOU Approval---------------
-
+    #======================HOU Approval===========================
     @app.route("/leave-requests/<int:request_id>/approve", methods=["PATCH"])
     @roles_required("head_of_unit")
     def approve_leave_request(request_id):
@@ -405,7 +432,7 @@ def register_leave_request_routes(app):
             }
         }), 200
     
-
+    #============================HOU REJECT LEAVE=======================
     @app.route("/leave-requests/<int:request_id>/reject-by-head", methods=["PATCH"])
     @roles_required("head_of_unit")
     def reject_leave_request_by_head(request_id):
@@ -473,7 +500,7 @@ def register_leave_request_routes(app):
         }), 200
     
 
-    #------------STAFF VIEW OWN REQUEST--------------
+    #==============STAFF VIEW OWN REQUEST===================
     @app.route("/my-leave-requests", methods=["GET"])
     @roles_required("staff")
     def get_my_leave_requests():
@@ -518,7 +545,7 @@ def register_leave_request_routes(app):
             "leave_requests": results
         }), 200
 
-    #--------------------SUPERVISOR VIEW ASSIGNED LEAVE-------------
+    #======================SUPERVISOR VIEW ASSIGNED LEAVE=======================
 
     @app.route("/supervisor/leave-requests/pending", methods=["GET"])
     @roles_required("supervisor")
@@ -565,7 +592,7 @@ def register_leave_request_routes(app):
             "pending_leave_requests": results
         }), 200
     
-    #------------------HOU LIST OF APPROVAL REQUESTS-------------
+    #=========================HOU LIST OF APPROVAL REQUESTS===========================
 
     @app.route("/head/leave-requests/pending", methods=["GET"])
     @roles_required("head_of_unit")
@@ -615,7 +642,7 @@ def register_leave_request_routes(app):
             "pending_leave_requests": results
         }), 200
     
-    ###################STAFF LEAVE BALANCE#########################
+    #=======================STAFF LEAVE BALANCE================
     @app.route("/my-leave-balances", methods=["GET"])
     @roles_required("staff")
     def get_my_leave_balances():
